@@ -4,6 +4,13 @@ import StaggerContainer, { StaggerItem } from '../components/StaggerContainer';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import Button from '../components/Button';
+import { createClient } from '@supabase/supabase-js';
+
+// ✅ Replace these with your actual Supabase project credentials
+const supabase = createClient(
+  'https://your-project.supabase.co',   // SUPABASE_URL
+  'your-anon-key-here'                   // SUPABASE_ANON_KEY
+);
 
 const bikeConditions = ["New", "Like New", "Good", "Fair"];
 const bikeTypes = ["Sport", "Naked", "Adventure", "Cruiser", "Scooter", "Classic", "Off-Road", "Other"];
@@ -11,6 +18,59 @@ const bikeTypes = ["Sport", "Naked", "Adventure", "Cruiser", "Scooter", "Classic
 export default function SellYourBike() {
   const [submitted, setSubmitted] = useState(false);
   const [step, setStep] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const [formData, setFormData] = useState({
+    brand_make: '',
+    model: '',
+    year: '',
+    mileage_km: '',
+    engine_cc: '',
+    bike_type: bikeTypes[0],
+    condition: bikeConditions[0],
+    asking_price_rm: '',
+    additional_notes: '',
+    full_name: '',
+    phone_number: '',
+    email_address: '',
+    preferred_contact: 'WhatsApp',
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setSubmitError(null);
+
+    const { error } = await supabase.from('bike_valuation_requests').insert([{
+      brand_make:        formData.brand_make,
+      model:             formData.model,
+      year:              parseInt(formData.year),
+      mileage_km:        parseInt(formData.mileage_km),
+      engine_cc:         formData.engine_cc ? parseInt(formData.engine_cc) : null,
+      bike_type:         formData.bike_type,
+      condition:         formData.condition,
+      asking_price_rm:   formData.asking_price_rm ? parseFloat(formData.asking_price_rm) : null,
+      additional_notes:  formData.additional_notes || null,
+      full_name:         formData.full_name,
+      phone_number:      formData.phone_number,
+      email_address:     formData.email_address,
+      preferred_contact: formData.preferred_contact,
+    }]);
+
+    setIsLoading(false);
+
+    if (error) {
+      console.error('Supabase error:', error);
+      setSubmitError('Something went wrong. Please try again.');
+    } else {
+      setSubmitted(true);
+    }
+  };
 
   return (
     <div className="w-full min-h-screen bg-background-main flex flex-col overflow-hidden">
@@ -114,7 +174,17 @@ export default function SellYourBike() {
                     <div className="flex flex-row gap-4 mt-4">
                       <Button
                         variant="primary"
-                        onClick={() => { setSubmitted(false); setStep(1); }}
+                        onClick={() => {
+                          setSubmitted(false);
+                          setStep(1);
+                          setSubmitError(null);
+                          setFormData({
+                            brand_make: '', model: '', year: '', mileage_km: '',
+                            engine_cc: '', bike_type: bikeTypes[0], condition: bikeConditions[0],
+                            asking_price_rm: '', additional_notes: '', full_name: '',
+                            phone_number: '', email_address: '', preferred_contact: 'WhatsApp',
+                          });
+                        }}
                       >
                         Submit Another
                       </Button>
@@ -130,7 +200,7 @@ export default function SellYourBike() {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     className="flex flex-col gap-8"
-                    onSubmit={(e) => { e.preventDefault(); setSubmitted(true); }}
+                    onSubmit={handleSubmit}
                   >
                     <div className="flex flex-col gap-2">
                       <h2 className="text-[32px] font-bold leading-none tracking-[-0.03em]">Bike Details</h2>
@@ -146,6 +216,9 @@ export default function SellYourBike() {
                           <label className="font-medium text-sm text-text-black-muted uppercase tracking-wider">Brand / Make</label>
                           <input
                             type="text"
+                            name="brand_make"
+                            value={formData.brand_make}
+                            onChange={handleChange}
                             required
                             className="w-full bg-background-mid border border-grey-main rounded-xl px-4 py-4 outline-none focus:border-black-main transition-colors font-medium text-text-black"
                             placeholder="e.g. Honda, Yamaha"
@@ -155,6 +228,9 @@ export default function SellYourBike() {
                           <label className="font-medium text-sm text-text-black-muted uppercase tracking-wider">Model</label>
                           <input
                             type="text"
+                            name="model"
+                            value={formData.model}
+                            onChange={handleChange}
                             required
                             className="w-full bg-background-mid border border-grey-main rounded-xl px-4 py-4 outline-none focus:border-black-main transition-colors font-medium text-text-black"
                             placeholder="e.g. CBR600RR, MT-09"
@@ -167,6 +243,9 @@ export default function SellYourBike() {
                           <label className="font-medium text-sm text-text-black-muted uppercase tracking-wider">Year</label>
                           <input
                             type="number"
+                            name="year"
+                            value={formData.year}
+                            onChange={handleChange}
                             required
                             min="1990"
                             max={new Date().getFullYear()}
@@ -178,6 +257,9 @@ export default function SellYourBike() {
                           <label className="font-medium text-sm text-text-black-muted uppercase tracking-wider">Mileage (km)</label>
                           <input
                             type="number"
+                            name="mileage_km"
+                            value={formData.mileage_km}
+                            onChange={handleChange}
                             required
                             className="w-full bg-background-mid border border-grey-main rounded-xl px-4 py-4 outline-none focus:border-black-main transition-colors font-medium text-text-black"
                             placeholder="15000"
@@ -187,6 +269,9 @@ export default function SellYourBike() {
                           <label className="font-medium text-sm text-text-black-muted uppercase tracking-wider">Engine (cc)</label>
                           <input
                             type="number"
+                            name="engine_cc"
+                            value={formData.engine_cc}
+                            onChange={handleChange}
                             className="w-full bg-background-mid border border-grey-main rounded-xl px-4 py-4 outline-none focus:border-black-main transition-colors font-medium text-text-black"
                             placeholder="600"
                           />
@@ -196,13 +281,13 @@ export default function SellYourBike() {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="flex flex-col gap-2">
                           <label className="font-medium text-sm text-text-black-muted uppercase tracking-wider">Bike Type</label>
-                          <select className="w-full bg-background-mid border border-grey-main rounded-xl px-4 py-4 outline-none focus:border-black-main transition-colors font-medium text-text-black appearance-none">
+                          <select name="bike_type" value={formData.bike_type} onChange={handleChange} className="w-full bg-background-mid border border-grey-main rounded-xl px-4 py-4 outline-none focus:border-black-main transition-colors font-medium text-text-black appearance-none">
                             {bikeTypes.map(t => <option key={t}>{t}</option>)}
                           </select>
                         </div>
                         <div className="flex flex-col gap-2">
                           <label className="font-medium text-sm text-text-black-muted uppercase tracking-wider">Condition</label>
-                          <select className="w-full bg-background-mid border border-grey-main rounded-xl px-4 py-4 outline-none focus:border-black-main transition-colors font-medium text-text-black appearance-none">
+                          <select name="condition" value={formData.condition} onChange={handleChange} className="w-full bg-background-mid border border-grey-main rounded-xl px-4 py-4 outline-none focus:border-black-main transition-colors font-medium text-text-black appearance-none">
                             {bikeConditions.map(c => <option key={c}>{c}</option>)}
                           </select>
                         </div>
@@ -212,6 +297,9 @@ export default function SellYourBike() {
                         <label className="font-medium text-sm text-text-black-muted uppercase tracking-wider">Asking Price (RM)</label>
                         <input
                           type="number"
+                          name="asking_price_rm"
+                          value={formData.asking_price_rm}
+                          onChange={handleChange}
                           className="w-full bg-background-mid border border-grey-main rounded-xl px-4 py-4 outline-none focus:border-black-main transition-colors font-medium text-text-black"
                           placeholder="e.g. 18000"
                         />
@@ -220,6 +308,9 @@ export default function SellYourBike() {
                       <div className="flex flex-col gap-2">
                         <label className="font-medium text-sm text-text-black-muted uppercase tracking-wider">Additional Notes</label>
                         <textarea
+                          name="additional_notes"
+                          value={formData.additional_notes}
+                          onChange={handleChange}
                           rows={3}
                           className="w-full bg-background-mid border border-grey-main rounded-xl px-4 py-4 outline-none focus:border-black-main transition-colors font-medium text-text-black resize-none"
                           placeholder="Any modifications, accident history, service records, or other details we should know..."
@@ -236,6 +327,9 @@ export default function SellYourBike() {
                           <label className="font-medium text-sm text-text-black-muted uppercase tracking-wider">Full Name</label>
                           <input
                             type="text"
+                            name="full_name"
+                            value={formData.full_name}
+                            onChange={handleChange}
                             required
                             className="w-full bg-background-mid border border-grey-main rounded-xl px-4 py-4 outline-none focus:border-black-main transition-colors font-medium text-text-black"
                             placeholder="Ahmad Hakim"
@@ -245,6 +339,9 @@ export default function SellYourBike() {
                           <label className="font-medium text-sm text-text-black-muted uppercase tracking-wider">Phone Number</label>
                           <input
                             type="tel"
+                            name="phone_number"
+                            value={formData.phone_number}
+                            onChange={handleChange}
                             required
                             className="w-full bg-background-mid border border-grey-main rounded-xl px-4 py-4 outline-none focus:border-black-main transition-colors font-medium text-text-black"
                             placeholder="+60 12-000 0000"
@@ -256,6 +353,9 @@ export default function SellYourBike() {
                         <label className="font-medium text-sm text-text-black-muted uppercase tracking-wider">Email Address</label>
                         <input
                           type="email"
+                          name="email_address"
+                          value={formData.email_address}
+                          onChange={handleChange}
                           required
                           className="w-full bg-background-mid border border-grey-main rounded-xl px-4 py-4 outline-none focus:border-black-main transition-colors font-medium text-text-black"
                           placeholder="ahmad@example.com"
@@ -264,7 +364,7 @@ export default function SellYourBike() {
 
                       <div className="flex flex-col gap-2">
                         <label className="font-medium text-sm text-text-black-muted uppercase tracking-wider">Preferred Contact Method</label>
-                        <select className="w-full bg-background-mid border border-grey-main rounded-xl px-4 py-4 outline-none focus:border-black-main transition-colors font-medium text-text-black appearance-none">
+                        <select name="preferred_contact" value={formData.preferred_contact} onChange={handleChange} className="w-full bg-background-mid border border-grey-main rounded-xl px-4 py-4 outline-none focus:border-black-main transition-colors font-medium text-text-black appearance-none">
                           <option>WhatsApp</option>
                           <option>Phone Call</option>
                           <option>Email</option>
@@ -272,12 +372,17 @@ export default function SellYourBike() {
                       </div>
                     </div>
 
+                    {submitError && (
+                      <p className="text-red-500 text-sm text-center font-medium">{submitError}</p>
+                    )}
+
                     <Button
                       type="submit"
                       variant="primary"
                       className="w-full"
+                      disabled={isLoading}
                     >
-                      Submit Valuation Request
+                      {isLoading ? 'Submitting...' : 'Submit Valuation Request'}
                     </Button>
 
                     <p className="text-center text-xs text-text-extra-muted">

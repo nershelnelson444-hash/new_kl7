@@ -20,7 +20,7 @@ export default function CarDetail() {
   }
 
   const { fieldData } = item;
-  
+
   // Collect images for carousel
   const images = [];
   if (fieldData.yhmUaSJgn?.value) images.push({ src: fieldData.yhmUaSJgn.value, alt: "Thumbnail" });
@@ -28,17 +28,17 @@ export default function CarDetail() {
   if (fieldData.GhhqWNVLi?.value) images.push({ src: fieldData.GhhqWNVLi.value, alt: "Gallery 2" });
   if (fieldData.XGFwlZjwx?.value) images.push({ src: fieldData.XGFwlZjwx.value, alt: "Gallery 3" });
   if (fieldData.c7AF1En5j?.value) images.push({ src: fieldData.c7AF1En5j.value, alt: "Gallery 4" });
-  
+
   // Format Carousel Props
   const carouselProps: any = { autoPlay: true, interval: 4000, borderRadius: 24 };
   images.forEach((img, i) => {
-    carouselProps[`image${i+1}`] = img;
+    carouselProps[`image${i + 1}`] = img;
   });
 
   return (
     <div className="w-full min-h-screen bg-background-main flex flex-col pt-32 pb-36 px-4 md:px-8">
       <div className="max-w-[1480px] w-full mx-auto flex flex-col gap-12">
-        
+
         {/* Breadcrumb & Title */}
         <div className="flex flex-col gap-4">
           <div className="flex flex-row gap-2 text-text-black-muted font-medium text-sm">
@@ -48,7 +48,7 @@ export default function CarDetail() {
             <span>/</span>
             <span className="text-black">{fieldData.i251F_cLI?.value}</span>
           </div>
-          
+
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
             <h1 className="text-[56px] font-bold leading-none tracking-[-0.03em] text-text-black">
               {fieldData.i251F_cLI?.value}
@@ -70,27 +70,27 @@ export default function CarDetail() {
 
         {/* Content Layout */}
         <div className="flex flex-col lg:flex-row gap-12 mt-8">
-          
+
           {/* Main Info */}
           <div className="flex-1 flex flex-col gap-12">
-            
+
             {/* Highlights Bar */}
             <div className="flex flex-row flex-wrap gap-4 bg-white p-6 rounded-2xl border border-grey-main">
               <div className="flex flex-col pr-8 border-r border-grey-main gap-1">
-                 <span className="text-text-extra-muted text-sm font-bold uppercase">Year</span>
-                 <span className="font-bold text-xl">{fieldData.AsGqvZIRE?.value}</span>
+                <span className="text-text-extra-muted text-sm font-bold uppercase">Year</span>
+                <span className="font-bold text-xl">{fieldData.AsGqvZIRE?.value}</span>
               </div>
               <div className="flex flex-col pr-8 border-r border-grey-main gap-1">
-                 <span className="text-text-extra-muted text-sm font-bold uppercase">Mileage</span>
-                 <span className="font-bold text-xl">{fieldData.FixYCUMxe?.value?.toLocaleString()} mi</span>
+                <span className="text-text-extra-muted text-sm font-bold uppercase">Mileage</span>
+                <span className="font-bold text-xl">{fieldData.FixYCUMxe?.value?.toLocaleString()} mi</span>
               </div>
               <div className="flex flex-col pr-8 border-r border-grey-main gap-1">
-                 <span className="text-text-extra-muted text-sm font-bold uppercase">Engine</span>
-                 <span className="font-bold text-xl">{fieldData.b0EvjjHmu?.value}</span>
+                <span className="text-text-extra-muted text-sm font-bold uppercase">Engine</span>
+                <span className="font-bold text-xl">{fieldData.b0EvjjHmu?.value}</span>
               </div>
               <div className="flex flex-col gap-1">
-                 <span className="text-text-extra-muted text-sm font-bold uppercase">Transmission</span>
-                 <span className="font-bold text-xl">{fieldData.DUdYPJIP0?.value}</span>
+                <span className="text-text-extra-muted text-sm font-bold uppercase">Transmission</span>
+                <span className="font-bold text-xl">{fieldData.DUdYPJIP0?.value}</span>
               </div>
             </div>
 
@@ -144,11 +144,9 @@ export default function CarDetail() {
                 <span className="text-text-black-muted uppercase tracking-wider text-sm font-bold">Interested?</span>
                 <h3 className="text-[32px] font-bold leading-none tracking-[-0.03em]">Contact Sales</h3>
               </div>
-              
+
               <div className="flex flex-col gap-4">
                 <Button asLink to="/contact" variant="primary" className="w-full">Enquire Now</Button>
-                <Button asLink to="/trade-in" variant="inverse" className="w-full">Value Trade-In</Button>
-                <Button asLink to="/financing" variant="inverse" className="w-full">Finance Calculator</Button>
               </div>
 
               <div className="border-t border-grey-main pt-6 flex flex-col gap-4 text-sm text-text-black-muted">
@@ -171,7 +169,7 @@ export default function CarDetail() {
               </div>
             </div>
           </div>
-          
+
         </div>
       </div>
     </div>

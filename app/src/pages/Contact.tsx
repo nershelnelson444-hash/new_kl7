@@ -2,9 +2,59 @@ import React, { useState } from 'react';
 import FadeIn from '../components/FadeIn';
 import StaggerContainer, { StaggerItem } from '../components/StaggerContainer';
 import Button from '../components/Button';
+import { supabase } from '../config/supabaseclient';
 
 export default function Contact() {
   const [submitted, setSubmitted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const [formData, setFormData] = useState({
+    full_name: '',
+    email_address: '',
+    phone_number: '',
+    subject: 'General Enquiry',
+    message: '',
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setSubmitError(null);
+
+    const { error } = await supabase.from('contact_messages').insert([{
+      full_name: formData.full_name,
+      email_address: formData.email_address,
+      phone_number: formData.phone_number || null,
+      subject: formData.subject,
+      message: formData.message,
+    }]);
+
+    setIsLoading(false);
+
+    if (error) {
+      console.error('Supabase error:', error);
+      setSubmitError('Something went wrong. Please try again.');
+    } else {
+      setSubmitted(true);
+    }
+  };
+
+  const handleReset = () => {
+    setSubmitted(false);
+    setSubmitError(null);
+    setFormData({
+      full_name: '',
+      email_address: '',
+      phone_number: '',
+      subject: 'General Enquiry',
+      message: '',
+    });
+  };
 
   return (
     <div className="w-full min-h-screen bg-background-main flex flex-col overflow-hidden">
@@ -85,7 +135,7 @@ export default function Contact() {
                   <p className="text-text-black-muted max-w-xs">We'll get back to you within 24 hours. Thank you for reaching out!</p>
                   <Button
                     variant="primary"
-                    onClick={() => setSubmitted(false)}
+                    onClick={handleReset}
                     className="mt-4"
                   >
                     Send Another
@@ -94,7 +144,7 @@ export default function Contact() {
               ) : (
                 <form
                   className="flex flex-col gap-6"
-                  onSubmit={(e) => { e.preventDefault(); setSubmitted(true); }}
+                  onSubmit={handleSubmit}
                 >
                   <h2 className="text-[32px] font-bold leading-none tracking-[-0.03em] mb-4">Send a Message</h2>
 
@@ -102,6 +152,9 @@ export default function Contact() {
                     <label className="font-medium text-sm text-text-black-muted uppercase tracking-wider">Full Name</label>
                     <input
                       type="text"
+                      name="full_name"
+                      value={formData.full_name}
+                      onChange={handleChange}
                       required
                       className="w-full bg-background-mid border border-grey-main rounded-xl px-4 py-4 outline-none focus:border-black-main transition-colors font-medium text-text-black"
                       placeholder="Ahmad Hakim"
@@ -112,6 +165,9 @@ export default function Contact() {
                     <label className="font-medium text-sm text-text-black-muted uppercase tracking-wider">Email Address</label>
                     <input
                       type="email"
+                      name="email_address"
+                      value={formData.email_address}
+                      onChange={handleChange}
                       required
                       className="w-full bg-background-mid border border-grey-main rounded-xl px-4 py-4 outline-none focus:border-black-main transition-colors font-medium text-text-black"
                       placeholder="ahmad@example.com"
@@ -122,6 +178,9 @@ export default function Contact() {
                     <label className="font-medium text-sm text-text-black-muted uppercase tracking-wider">Phone Number</label>
                     <input
                       type="tel"
+                      name="phone_number"
+                      value={formData.phone_number}
+                      onChange={handleChange}
                       className="w-full bg-background-mid border border-grey-main rounded-xl px-4 py-4 outline-none focus:border-black-main transition-colors font-medium text-text-black"
                       placeholder="+60 12-000 0000"
                     />
@@ -129,7 +188,12 @@ export default function Contact() {
 
                   <div className="flex flex-col gap-2">
                     <label className="font-medium text-sm text-text-black-muted uppercase tracking-wider">Subject</label>
-                    <select className="w-full bg-background-mid border border-grey-main rounded-xl px-4 py-4 outline-none focus:border-black-main transition-colors font-medium text-text-black appearance-none">
+                    <select
+                      name="subject"
+                      value={formData.subject}
+                      onChange={handleChange}
+                      className="w-full bg-background-mid border border-grey-main rounded-xl px-4 py-4 outline-none focus:border-black-main transition-colors font-medium text-text-black appearance-none"
+                    >
                       <option>General Enquiry</option>
                       <option>Bike Enquiry</option>
                       <option>Sell / Trade-In</option>
@@ -141,18 +205,26 @@ export default function Contact() {
                   <div className="flex flex-col gap-2">
                     <label className="font-medium text-sm text-text-black-muted uppercase tracking-wider">Message</label>
                     <textarea
+                      name="message"
+                      value={formData.message}
+                      onChange={handleChange}
                       rows={4}
                       className="w-full bg-background-mid border border-grey-main rounded-xl px-4 py-4 outline-none focus:border-black-main transition-colors font-medium text-text-black resize-none"
                       placeholder="How can we help you?"
                     />
                   </div>
 
+                  {submitError && (
+                    <p className="text-red-500 text-sm text-center font-medium">{submitError}</p>
+                  )}
+
                   <Button
                     type="submit"
                     variant="primary"
                     className="w-full mt-4"
+                    disabled={isLoading}
                   >
-                    Send Message
+                    {isLoading ? 'Sending...' : 'Send Message'}
                   </Button>
                 </form>
               )}
